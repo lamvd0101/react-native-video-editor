@@ -6,6 +6,13 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		810419232385575B00F7EEC1 /* RNVideoEditorModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810419222385575B00F7EEC1 /* RNVideoEditorModule.swift */; };
+		81041925238557AE00F7EEC1 /* RNVideoEditorModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 81041924238557AE00F7EEC1 /* RNVideoEditorModule.m */; };
+		81041927238557C700F7EEC1 /* RNVideoEditorUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81041926238557C700F7EEC1 /* RNVideoEditorUtilities.swift */; };
+		8104192A238557FF00F7EEC1 /* SDAVAssetExportSession.m in Sources */ = {isa = PBXBuildFile; fileRef = 81041929238557FF00F7EEC1 /* SDAVAssetExportSession.m */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		58B511D91A9E6C8500147676 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -20,6 +27,12 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRNVideoEditor.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNVideoEditor.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		810419212385575B00F7EEC1 /* RNVideoEditor-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RNVideoEditor-Bridging-Header.h"; sourceTree = "<group>"; };
+		810419222385575B00F7EEC1 /* RNVideoEditorModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNVideoEditorModule.swift; sourceTree = "<group>"; };
+		81041924238557AE00F7EEC1 /* RNVideoEditorModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNVideoEditorModule.m; sourceTree = "<group>"; };
+		81041926238557C700F7EEC1 /* RNVideoEditorUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RNVideoEditorUtilities.swift; sourceTree = "<group>"; };
+		81041928238557E600F7EEC1 /* SDAVAssetExportSession.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SDAVAssetExportSession.h; sourceTree = "<group>"; };
+		81041929238557FF00F7EEC1 /* SDAVAssetExportSession.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SDAVAssetExportSession.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,7 +57,13 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				81041929238557FF00F7EEC1 /* SDAVAssetExportSession.m */,
+				81041928238557E600F7EEC1 /* SDAVAssetExportSession.h */,
+				81041926238557C700F7EEC1 /* RNVideoEditorUtilities.swift */,
+				81041924238557AE00F7EEC1 /* RNVideoEditorModule.m */,
+				810419222385575B00F7EEC1 /* RNVideoEditorModule.swift */,
 				134814211AA4EA7D00B7C361 /* Products */,
+				810419212385575B00F7EEC1 /* RNVideoEditor-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -79,6 +98,7 @@
 				TargetAttributes = {
 					58B511DA1A9E6C8500147676 = {
 						CreatedOnToolsVersion = 6.1.1;
+						LastSwiftMigration = 1120;
 					};
 				};
 			};
@@ -105,6 +125,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				81041927238557C700F7EEC1 /* RNVideoEditorUtilities.swift in Sources */,
+				81041925238557AE00F7EEC1 /* RNVideoEditorModule.m in Sources */,
+				810419232385575B00F7EEC1 /* RNVideoEditorModule.swift in Sources */,
+				8104192A238557FF00F7EEC1 /* SDAVAssetExportSession.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,32 +231,41 @@
 		58B511F01A9E6C8500147676 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = RNVideoEditor;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "RNVideoEditor-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		58B511F11A9E6C8500147676 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 					"$(SRCROOT)/../../../React/**",
 					"$(SRCROOT)/../../react-native/React/**",
 				);
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = RNVideoEditor;
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "RNVideoEditor-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
