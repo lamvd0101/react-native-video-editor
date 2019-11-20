@@ -1,17 +1,18 @@
-# react-native-rn-video-editor
+# React-Native Video Editor
 
 ## Getting started
 
-`$ npm install react-native-rn-video-editor --save`
+`$ npm install react-native-video-editor --save`
 
 ### Mostly automatic installation
 
-`$ react-native link react-native-rn-video-editor`
+`$ react-native link react-native-video-editor`
 
 ## Usage
+
 ```javascript
-import RnVideoEditor from 'react-native-rn-video-editor';
+import RNVideoEditor from "react-native-video-editor";
 
 // TODO: What to do with the module?
-RnVideoEditor;
+RNVideoEditor;
 ```
