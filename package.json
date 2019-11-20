@@ -1,7 +1,7 @@
 {
   "name": "@lamvd0101/react-native-video-editor",
   "title": "React-Native Video Editor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Native video editing for React-Native",
   "main": "src/index.js",
   "scripts": {},
@@ -20,13 +20,13 @@
     "name": "Vuong Duc Lam",
     "email": "lamvd0101@email.com"
   },
+  "homepage": "https://github.com/lamvd0101/react-native-video-editor#readme",
   "license": "MIT",
   "peerDependencies": {
-    "react": "^16.8.1",
-    "react-native": ">=0.59.0-rc.0 <1.0.x"
+    "react-native": ">=0.59"
   },
   "devDependencies": {
-    "react": "^16.8.3",
-    "react-native": "^0.59.10"
+    "react": "16.8.3",
+    "react-native": "0.59.5"
   }
 }
