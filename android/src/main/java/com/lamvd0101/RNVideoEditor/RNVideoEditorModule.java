@@ -9,8 +9,6 @@ package com.lamvd0101.RNVideoEditor;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
@@ -79,7 +77,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getVideoInfo(@NonNull String source, Promise promise) {
+  public void getVideoInfo(String source, Promise promise) {
     try {
       WritableMap data = Arguments.createMap();
 
@@ -93,7 +91,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getPictureAtPosition(@NonNull String source, ReadableMap options, Promise promise) {
+  public void getPictureAtPosition(String source, ReadableMap options, Promise promise) {
     MediaMetadataRetriever retriever = null;
     try {
       String format = options.hasKey("format") ? options.getString("format") : "base64";
@@ -142,7 +140,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getPictures(@NonNull String source, Promise promise) {
+  public void getPictures(String source, Promise promise) {
     MediaMetadataRetriever retriever = new MediaMetadataRetriever();
     try {
       double numberOfPictures = 8;
@@ -182,7 +180,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void merge(@NonNull ReadableArray videoFiles, final Promise promise) {
+  public void merge(ReadableArray videoFiles, final Promise promise) {
     try {
       final File tempFile = RNVideoEditorUtilities.createTempFile("mp4", reactContext);
 
@@ -239,7 +237,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void mergeWithAudio(@NonNull String source, @NonNull String audioSource, final Promise promise) {
+  public void mergeWithAudio(String source, String audioSource, final Promise promise) {
     try {
       final File tempFile = RNVideoEditorUtilities.createTempFile("mp4", reactContext);
       EpEditor.music(source, audioSource, tempFile.getPath(), 1, 1, new OnEditorListener() {
@@ -263,7 +261,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void trim(@NonNull String source, ReadableMap options, final Promise promise) {
+  public void trim(String source, ReadableMap options, final Promise promise) {
     try {
       double startTime = options.hasKey("startTime") ? options.getDouble("startTime") : 0;
       double endTime = options.hasKey("endTime") ? options.getDouble("endTime") : 0;
@@ -301,7 +299,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void cleanFiles(@NonNull Callback callback) {
+  public void cleanFiles(Callback callback) {
     try {
       RNVideoEditorUtilities.cleanFiles(reactContext);
       callback.invoke();
