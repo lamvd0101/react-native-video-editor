@@ -54,7 +54,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
     return "RNVideoEditor";
   }
 
-  private void cmdExec(StringBuffer strBuffer, File tempFile, Promise promise) {
+  private void cmdExec(StringBuffer strBuffer, final File tempFile, final Promise promise) {
     try {
       String cmd = strBuffer.toString() + " " + tempFile.getPath();
       Log.d("cmdExec", cmd);
@@ -182,7 +182,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void merge(@NonNull ReadableArray videoFiles, Promise promise) {
+  public void merge(@NonNull ReadableArray videoFiles, final Promise promise) {
     try {
       final File tempFile = RNVideoEditorUtilities.createTempFile("mp4", reactContext);
 
@@ -239,7 +239,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void mergeWithAudio(@NonNull String source, @NonNull String audioSource, Promise promise) {
+  public void mergeWithAudio(@NonNull String source, @NonNull String audioSource, final Promise promise) {
     try {
       final File tempFile = RNVideoEditorUtilities.createTempFile("mp4", reactContext);
       EpEditor.music(source, audioSource, tempFile.getPath(), 1, 1, new OnEditorListener() {
@@ -263,7 +263,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void trim(@NonNull String source, ReadableMap options, Promise promise) {
+  public void trim(@NonNull String source, ReadableMap options, final Promise promise) {
     try {
       double startTime = options.hasKey("startTime") ? options.getDouble("startTime") : 0;
       double endTime = options.hasKey("endTime") ? options.getDouble("endTime") : 0;
