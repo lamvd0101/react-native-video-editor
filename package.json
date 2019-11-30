@@ -1,7 +1,7 @@
 {
   "name": "@lamvd0101/react-native-video-editor",
   "title": "React-Native Video Editor",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Native video editing for React-Native",
   "main": "src/index.js",
   "scripts": {},
