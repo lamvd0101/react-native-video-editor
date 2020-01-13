@@ -1,15 +1,20 @@
-import { NativeModules } from "react-native";
-const { RNVideoEditor } = NativeModules;
+import {NativeModules} from 'react-native';
+const {RNVideoEditor} = NativeModules;
 
 export class VideoEditor {
+  // Source is path with Android & PhotoAsset with iOS
+
   // Info functions
+  static async getLocalURL(source) {
+    return await RNVideoEditor.getLocalURL(source);
+  }
   static async getVideoInfo(source) {
     return await RNVideoEditor.getVideoInfo(source);
   }
-  static async getPictureAtPosition(source, { format = "base64", second }) {
+  static async getPictureAtPosition(source, {format = 'base64', second}) {
     return await RNVideoEditor.getPictureAtPosition(source, {
       format,
-      second
+      second,
     });
   }
   static async getPictures(source) {
@@ -23,10 +28,10 @@ export class VideoEditor {
   static async mergeWithAudio(source, audioSource) {
     return await RNVideoEditor.mergeWithAudio(source, audioSource);
   }
-  static async trim(source, { startTime, endTime }) {
+  static async trim(source, {startTime, endTime}) {
     return await RNVideoEditor.trim(source, {
       startTime,
-      endTime
+      endTime,
     });
   }
   static async compress() {}

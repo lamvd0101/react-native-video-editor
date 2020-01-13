@@ -77,6 +77,15 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
+  public void getLocalURL(String source, Promise promise) {
+    try {
+      promise.resolve(source);
+    } catch (Exception e) {
+      promise.reject(null, e);
+    }
+  }
+
+  @ReactMethod
   public void getVideoInfo(String source, Promise promise) {
     try {
       WritableMap data = Arguments.createMap();

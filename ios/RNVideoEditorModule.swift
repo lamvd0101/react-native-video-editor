@@ -68,6 +68,19 @@ class RNVideoEditorModule: NSObject {
         }
     }
     
+    @objc func getLocalURL(
+        _ source: String,
+        resolver resolve: RCTPromiseResolveBlock,
+        rejecter reject: RCTPromiseRejectBlock
+    ) -> Void {
+        do {
+            let asset: AVURLAsset! = try RNVideoEditorUtilities.requestAsset(source) as? AVURLAsset
+            resolve(asset.url.absoluteString)
+        } catch {
+            reject(nil, nil, error)
+        }
+    }
+    
     @objc func getVideoInfo(
         _ source: String,
         resolver resolve: RCTPromiseResolveBlock,
