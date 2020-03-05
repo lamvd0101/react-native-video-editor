@@ -13,8 +13,8 @@ import UIKit
 class RNVideoEditorModule: NSObject {
     let VIDEO_WIDTH: String = "720"
     let VIDEO_HEIGHT: String = "1280"
-    let VIDEO_FPS: String = "30"
-    let VIDEO_BITRATE: String = "4000000"
+    let VIDEO_FPS: Int = 30
+    let VIDEO_BITRATE: Int = 4000000
     
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
@@ -46,7 +46,7 @@ class RNVideoEditorModule: NSObject {
             ]
             exportSession.audioSettings = [
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVNumberOfChannelsKey: 1,
+                AVNumberOfChannelsKey: 2,
                 AVSampleRateKey: 44100,
                 AVEncoderBitRateKey: 128000
             ]
@@ -65,6 +65,19 @@ class RNVideoEditorModule: NSObject {
             })
         } else {
             reject(nil, nil, "Export failed.")
+        }
+    }
+    
+    @objc func getLocalURL(
+        _ source: String,
+        resolver resolve: RCTPromiseResolveBlock,
+        rejecter reject: RCTPromiseRejectBlock
+    ) -> Void {
+        do {
+            let asset: AVURLAsset! = try RNVideoEditorUtilities.requestAsset(source) as? AVURLAsset
+            resolve(asset.url.absoluteString)
+        } catch {
+            reject(nil, nil, error)
         }
     }
     
