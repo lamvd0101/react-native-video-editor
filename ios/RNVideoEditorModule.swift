@@ -302,7 +302,7 @@ class RNVideoEditorModule: NSObject {
         }
     }
     
-    @objc func cancelExport(
+    @objc func cancel(
         _ callBack: RCTResponseSenderBlock?
     ) -> Void {
         guard self.exportSession != nil else { return callBack!(nil) }

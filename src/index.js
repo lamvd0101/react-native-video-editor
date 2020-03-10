@@ -36,6 +36,9 @@ export class VideoEditor {
   }
   static async compress() {}
   static async crop() {}
+  static async cancel(callback = () => {}) {
+    return await RNVideoEditor.cancel(callback);
+  }
 
   // Draw functions
   static async addImage() {}

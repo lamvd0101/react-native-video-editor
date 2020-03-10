@@ -318,7 +318,7 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void cancelExport(Callback callback) {
+  public void cancel(Callback callback) {
     try {
       FFmpegCmd.exit();
       callback.invoke();
