@@ -30,6 +30,7 @@ import java.io.File;
 import java.lang.StringBuffer;
 import java.util.ArrayList;
 
+import Jni.FFmpegCmd;
 import Jni.VideoUitls;
 import VideoHandle.EpEditor;
 import VideoHandle.EpVideo;
@@ -311,6 +312,15 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   public void cleanFiles(Callback callback) {
     try {
       RNVideoEditorUtilities.cleanFiles(reactContext);
+      callback.invoke();
+    } catch (Exception e) {
+    }
+  }
+
+  @ReactMethod
+  public void cancelExport(Callback callback) {
+    try {
+      FFmpegCmd.exit();
       callback.invoke();
     } catch (Exception e) {
     }
