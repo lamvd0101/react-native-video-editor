@@ -15,6 +15,7 @@ class RNVideoEditorModule: NSObject {
     let VIDEO_HEIGHT: String = "1280"
     let VIDEO_FPS: Int = 30
     let VIDEO_BITRATE: Int = 4000000
+    var exportSession: SDAVAssetExportSession? = nil
     
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
@@ -27,45 +28,45 @@ class RNVideoEditorModule: NSObject {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        if let exportSession = SDAVAssetExportSession(asset: asset) {
-            exportSession.outputURL = outputURL
-            exportSession.outputFileType = AVFileType.mp4.rawValue
-            exportSession.shouldOptimizeForNetworkUse = true
-            if (timeRange != nil) {
-                exportSession.timeRange = timeRange!
-            }
-            exportSession.videoSettings = [
-                AVVideoCodecKey: AVVideoCodecH264,
-                AVVideoWidthKey: self.VIDEO_WIDTH,
-                AVVideoHeightKey: self.VIDEO_HEIGHT,
-                AVVideoCompressionPropertiesKey: [
-                    AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
-                    AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
-                    AVVideoProfileLevelKey: AVVideoProfileLevelH264High40
-                ]
-            ]
-            exportSession.audioSettings = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVNumberOfChannelsKey: 2,
-                AVSampleRateKey: 44100,
-                AVEncoderBitRateKey: 128000
-            ]
-            
-            exportSession.exportAsynchronously(completionHandler: {
-                switch exportSession.status {
-                case .completed:
-                    resolve(outputURL.absoluteString)
-                case .failed:
-                    reject(nil, nil, "Export failed.")
-                case .cancelled:
-                    reject(nil, nil, "Cancelled by user.")
-                default:
-                    reject(nil, nil, "Export failed.")
-                }
-            })
-        } else {
-            reject(nil, nil, "Export failed.")
+        self.exportSession = SDAVAssetExportSession(asset: asset)
+        guard self.exportSession != nil else { return reject(nil, nil, "Export failed.") }
+        
+        self.exportSession!.outputURL = outputURL
+        self.exportSession!.outputFileType = AVFileType.mp4.rawValue
+        self.exportSession!.shouldOptimizeForNetworkUse = true
+        if (timeRange != nil) {
+            self.exportSession!.timeRange = timeRange!
         }
+        self.exportSession!.videoSettings = [
+            AVVideoCodecKey: AVVideoCodecH264,
+            AVVideoWidthKey: self.VIDEO_WIDTH,
+            AVVideoHeightKey: self.VIDEO_HEIGHT,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
+                AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264High40
+            ]
+        ]
+        self.exportSession!.audioSettings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVNumberOfChannelsKey: 2,
+            AVSampleRateKey: 44100,
+            AVEncoderBitRateKey: 128000
+        ]
+        
+        self.exportSession!.exportAsynchronously(completionHandler: {
+            switch self.exportSession!.status {
+            case .completed:
+                self.exportSession = nil
+                resolve(outputURL.absoluteString)
+            case .failed:
+                reject(nil, nil, "Export failed.")
+            case .cancelled:
+                reject(nil, nil, "Cancelled by user.")
+            default:
+                reject(nil, nil, "Export failed.")
+            }
+        })
     }
     
     @objc func getLocalURL(
@@ -299,5 +300,13 @@ class RNVideoEditorModule: NSObject {
             callBack!(nil)
         } catch {
         }
+    }
+    
+    @objc func cancelExport(
+        _ callBack: RCTResponseSenderBlock?
+    ) -> Void {
+        guard self.exportSession != nil else { return callBack!(nil) }
+        self.exportSession!.cancelExport()
+        callBack!(nil)
     }
 }
