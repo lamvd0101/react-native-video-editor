@@ -25,6 +25,7 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
+import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.lang.StringBuffer;
@@ -53,11 +54,11 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
     return "RNVideoEditor";
   }
 
-  private void cmdExec(StringBuffer strBuffer, final File tempFile, final Promise promise) {
+  private void cmdExec(StringBuffer strBuffer, long duration, final File tempFile, final Promise promise) {
     try {
       String cmd = strBuffer.toString() + " " + tempFile.getPath();
       Log.d("cmdExec", cmd);
-      EpEditor.execCmd(cmd, 0, new OnEditorListener() {
+      EpEditor.execCmd(cmd, duration, new OnEditorListener() {
         @Override
         public void onSuccess() {
           promise.resolve("file://" + tempFile.getPath());
@@ -112,28 +113,27 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
         second = 0;
       }
 
+      retriever = new MediaMetadataRetriever();
+      if (RNVideoEditorUtilities.shouldUseURI(source)) {
+        Uri uri = Uri.parse(source);
+        retriever.setDataSource(uri.getPath());
+      } else {
+        retriever.setDataSource(source);
+      }
+      Bitmap bm = retriever.getFrameAtTime((long) (second * 1000));
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
       if (format != null && format.equals("jpg")) {
         final File tempFile = RNVideoEditorUtilities.createTempFile("jpg", reactContext);
-        StringBuffer strBuffer = new StringBuffer();
-        strBuffer.append("-ss ");
-        strBuffer.append(RNVideoEditorUtilities.parseSecondsToString(second));
-        strBuffer.append(" -i ");
-        strBuffer.append(source);
-        strBuffer.append(" -vframes 1 -preset superfast");
+        bm.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-        cmdExec(strBuffer, tempFile, promise);
+        FileOutputStream fos = new FileOutputStream( tempFile.getPath() );
+        fos.write( byteArray );
+        fos.close();
+
+        promise.resolve("file://" + tempFile.getPath());
       } else {
-        retriever = new MediaMetadataRetriever();
-        if (RNVideoEditorUtilities.shouldUseURI(source)) {
-          Uri uri = Uri.parse(source);
-          retriever.setDataSource(uri.getPath());
-        } else {
-          retriever.setDataSource(source);
-        }
-
-        Bitmap bm = retriever.getFrameAtTime((long) (second * 1000));
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bm.compress(Bitmap.CompressFormat.PNG, 50, byteArrayOutputStream);
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
