@@ -50,5 +50,8 @@ RCT_EXTERN_METHOD(
 RCT_EXTERN_METHOD(
     cleanFiles: (RCTResponseSenderBlock)callback
 );
+RCT_EXTERN_METHOD(
+    cancel: (RCTResponseSenderBlock)callback
+);
 
 @end
