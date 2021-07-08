@@ -7,6 +7,10 @@
 
 package com.lamvd0101.RNVideoEditor;
 
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
+import android.util.Log;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 
 import java.io.File;
@@ -14,6 +18,8 @@ import java.util.UUID;
 
 public class RNVideoEditorUtilities {
   private static final String filePrefix = "reaction-media";
+  private static final int DEFAULT_VIDEO_WIDTH = 720;
+  private static final int DEFAULT_VIDEO_HEIGHT = 1280;
 
   public static File createTempFile(String extension, ReactApplicationContext ctx) throws Exception {
     try {
@@ -73,5 +79,44 @@ public class RNVideoEditorUtilities {
     int s = (int) seconds % 60;
 
     return String.format("%02d:%02d:%02d", h, m, s);
+  }
+
+  public static VideoSize determineOutputVideoSize(String source) {
+    if (source == null) {
+      return new VideoSize(DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT);
+    }
+
+    MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+    try {
+      if (RNVideoEditorUtilities.shouldUseURI(source)) {
+        Uri uri = Uri.parse(source);
+        retriever.setDataSource(uri.getPath());
+      } else {
+        retriever.setDataSource(source);
+      }
+      int width = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH));
+      int height = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT));
+      VideoSize videoSize = new VideoSize(width, height);
+      Log.d("RNVideoEditorUtilities", "determineOutputVideoSize video size before scale: " + videoSize.toString());
+      applyScale(videoSize);
+      Log.d("RNVideoEditorUtilities", "determineOutputVideoSize video size after scale: " + videoSize.toString());
+      return videoSize;
+    } catch (Exception e) {
+      Log.e("RNVideoEditorUtilities", "getVideoRatio fail");
+      e.printStackTrace();
+      return new VideoSize(DEFAULT_VIDEO_WIDTH, DEFAULT_VIDEO_HEIGHT);
+    } finally {
+      retriever.release();
+    }
+  }
+
+  private static void applyScale(VideoSize videoSize) {
+    int oldWidth = videoSize.width;
+    int oldHeight = videoSize.height;
+    int maxPixelCount = DEFAULT_VIDEO_WIDTH * DEFAULT_VIDEO_HEIGHT;
+    int newWidth = (int) Math.round(Math.sqrt(maxPixelCount * oldWidth / (float) oldHeight));
+    int newHeight = newWidth * oldHeight / oldWidth;
+    videoSize.width = newWidth;
+    videoSize.height = newHeight;
   }
 }

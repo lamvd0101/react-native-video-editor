@@ -7,28 +7,26 @@
 
 package com.lamvd0101.RNVideoEditor;
 
-import android.util.Log;
-
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.util.Base64;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.Callback;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
-import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.lang.StringBuffer;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 
 import Jni.FFmpegCmd;
@@ -39,12 +37,10 @@ import VideoHandle.OnEditorListener;
 
 public class RNVideoEditorModule extends ReactContextBaseJavaModule {
   private final ReactApplicationContext reactContext;
-  private final int VIDEO_WIDTH = 720;
-  private final int VIDEO_HEIGHT = 1280;
   private final int VIDEO_FPS = 30;
   private final int VIDEO_BITRATE = 4; // 4MB
 
-  RNVideoEditorModule(ReactApplicationContext reactContext) {
+  public RNVideoEditorModule(ReactApplicationContext reactContext) {
     super(reactContext);
     this.reactContext = reactContext;
   }
@@ -202,8 +198,16 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
 
       EpEditor.OutputOption outputOption = new EpEditor.OutputOption(tempFile.getPath());
       outputOption.outFormat = "mp4";
-      outputOption.setWidth(VIDEO_WIDTH);
-      outputOption.setHeight(VIDEO_HEIGHT);
+
+      VideoSize videoSize;
+      if (size > 0) {
+        videoSize = RNVideoEditorUtilities.determineOutputVideoSize(videoFiles.getString(0));
+      } else {
+        videoSize = RNVideoEditorUtilities.determineOutputVideoSize(null);
+      }
+      outputOption.setWidth(videoSize.width);
+      outputOption.setHeight(videoSize.height);
+
       outputOption.frameRate = VIDEO_FPS;
       outputOption.bitRate = VIDEO_BITRATE;
 
@@ -283,8 +287,11 @@ public class RNVideoEditorModule extends ReactContextBaseJavaModule {
 
       EpEditor.OutputOption outputOption = new EpEditor.OutputOption(tempFile.getPath());
       outputOption.outFormat = "mp4";
-      outputOption.setWidth(VIDEO_WIDTH);
-      outputOption.setHeight(VIDEO_HEIGHT);
+
+      VideoSize videoSize = RNVideoEditorUtilities.determineOutputVideoSize(source);
+      outputOption.setWidth(videoSize.width);
+      outputOption.setHeight(videoSize.height);
+
       outputOption.frameRate = VIDEO_FPS;
       outputOption.bitRate = VIDEO_BITRATE;
 
