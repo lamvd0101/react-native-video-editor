@@ -11,8 +11,8 @@ import UIKit
 
 @objc(RNVideoEditorModule)
 class RNVideoEditorModule: NSObject {
-    let VIDEO_WIDTH: String = "720"
-    let VIDEO_HEIGHT: String = "1280"
+    let VIDEO_WIDTH: Int = 720
+    let VIDEO_HEIGHT: Int = 1280
     let VIDEO_FPS: Int = 30
     let VIDEO_BITRATE: Int = 4000000
     var exportSession: SDAVAssetExportSession? = nil
@@ -42,21 +42,20 @@ class RNVideoEditorModule: NSObject {
         if let track = asset.tracks(withMediaType: AVMediaType.video).first {
             size = track.naturalSize.applying(track.preferredTransform)
         }
-        let ratio = size == .zero ? 0 : fabs(size.width) / fabs(size.height)
-        var newWidth: String = String(format: "%.f", fabs(size.width))
-        var newHeight: String = String(format: "%.f", fabs(size.height))
-        if ratio < 0, ratio == 9/16 {
-            newWidth = self.VIDEO_WIDTH
-            newHeight = self.VIDEO_HEIGHT
+
+        var newWidth = Int(size.width)
+        var newHeight = Int(size.height)
+
+        if(size != .zero){
+            let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;
+            newWidth = Int(round(sqrt(CGFloat(maxPixelCount) * size.width / size.height)));
+            newHeight = Int(CGFloat(newWidth) * size.height / size.width);
         }
-        else if ratio > 0, ratio == 16/9 {
-            newWidth = self.VIDEO_HEIGHT
-            newHeight = self.VIDEO_WIDTH
-        }
+
         self.exportSession!.videoSettings = [
             AVVideoCodecKey: AVVideoCodecH264,
-            AVVideoWidthKey: newWidth,
-            AVVideoHeightKey: newHeight,
+            AVVideoWidthKey: String(newWidth),
+            AVVideoHeightKey: String(newHeight),
             AVVideoCompressionPropertiesKey: [
                 AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
                 AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
