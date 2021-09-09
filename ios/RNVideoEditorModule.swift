@@ -43,8 +43,8 @@ class RNVideoEditorModule: NSObject {
             size = track.naturalSize.applying(track.preferredTransform)
         }
 
-        var newWidth = Int(size.width)
-        var newHeight = Int(size.height)
+        var newWidth = self.VIDEO_WIDTH
+        var newHeight = Int(VIDEO_HEIGHT)
 
         if(size != .zero){
             let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;
