@@ -1,9 +1,21 @@
-import {NativeModules} from 'react-native';
+import {NativeEventEmitter, NativeModules, Platform} from 'react-native';
 const {RNVideoEditor} = NativeModules;
 
-export class VideoEditor {
-  // Source is path with Android & PhotoAsset with iOS
+const getChatEmitter = () => {
+  try {
+    return new NativeEventEmitter(NativeModules.VideoEditEmitter);
+  } catch (error) {}
+};
 
+
+export class VideoEditor {
+  static emitter = getChatEmitter();
+  // Source is path with Android & PhotoAsset with iOS
+  static logEvent(callback=()=>{}){
+    try {
+      VideoEditor.emitter?.addListener('logEvent', callback);
+    } catch (error) {}
+  }
   // Info functions
   static async getLocalURL(source) {
     return await RNVideoEditor.getLocalURL(source);
@@ -28,10 +40,11 @@ export class VideoEditor {
   static async mergeWithAudio(source, audioSource) {
     return await RNVideoEditor.mergeWithAudio(source, audioSource);
   }
-  static async trim(source, {startTime, endTime}) {
+  static async trim(source, {startTime, endTime, logFunc}) {
     return await RNVideoEditor.trim(source, {
       startTime,
       endTime,
+      logFunc,
     });
   }
   static async compress() {}
