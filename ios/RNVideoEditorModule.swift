@@ -119,7 +119,7 @@ class RNVideoEditorModule: NSObject {
             
             let imageRef: CGImage = try imageGenerator.copyCGImage(at: timestamp, actualTime: nil)
             let image: UIImage = UIImage(cgImage: imageRef)
-            let imgData: Data? = UIImageJPEGRepresentation(image, 0.5)
+            let imgData: Data? = image.jpegData(compressionQuality: 0.5)
             
             if format == "jpg" {
                 let outputURL: URL = try RNVideoEditorUtilities.createTempFile("jpg")
@@ -157,7 +157,7 @@ class RNVideoEditorModule: NSObject {
                 let timestamp: CMTime = CMTime(seconds: (Double(n) * second), preferredTimescale: 600)
                 let imageRef: CGImage = try imageGenerator.copyCGImage(at: timestamp, actualTime: nil)
                 let image: UIImage = UIImage(cgImage: imageRef)
-                let imgData: Data? = UIImageJPEGRepresentation(image, 0.5)
+                let imgData: Data? = image.jpegData(compressionQuality: 0.5)
                 
                 let base64String: String? = imgData?.base64EncodedString(options: Data.Base64EncodingOptions.init(rawValue: 0))
                 let picture = base64String != nil ? "data:image/png;base64,\(base64String!)" : ""
@@ -186,7 +186,7 @@ class RNVideoEditorModule: NSObject {
             let videoTrack: AVMutableCompositionTrack? = compositionAsset.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid)
             let soundTrack: AVMutableCompositionTrack? = compositionAsset.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid)
             
-            var insertTime = kCMTimeZero
+            var insertTime = CMTime.zero
             for asset in assets {
                 //        let track = asset.tracks(withMediaType: .video)[0]
                 //        let width: CGFloat = track.naturalSize.width
@@ -198,8 +198,8 @@ class RNVideoEditorModule: NSObject {
                 //        }
                 //        videoTrack?.preferredTransform = transforms
                 
-                try videoTrack?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, asset.duration), of: asset.tracks(withMediaType: .video)[0], at: insertTime)
-                try soundTrack?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, asset.duration), of: asset.tracks(withMediaType: .audio)[0], at: insertTime)
+                try videoTrack?.insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: asset.duration), of: asset.tracks(withMediaType: .video)[0], at: insertTime)
+                try soundTrack?.insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: asset.duration), of: asset.tracks(withMediaType: .audio)[0], at: insertTime)
                 insertTime = CMTimeAdd(insertTime, asset.duration)
             }
             
@@ -239,8 +239,8 @@ class RNVideoEditorModule: NSObject {
                 if let videoAssetTrack: AVAssetTrack = videoAsset.tracks(withMediaType: .video).first,
                     let audioAssetTrack: AVAssetTrack = audioAsset.tracks(withMediaType: .audio).first {
                     do {
-                        try videoTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, videoAssetTrack.timeRange.duration), of: videoAssetTrack, at: kCMTimeZero)
-                        try soundTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, audioAssetTrack.timeRange.duration), of: audioAssetTrack, at: kCMTimeZero)
+                        try videoTracks.first?.insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: videoAssetTrack.timeRange.duration), of: videoAssetTrack, at: CMTime.zero)
+                        try soundTracks.first?.insertTimeRange(CMTimeRangeMake(start: CMTime.zero, duration: audioAssetTrack.timeRange.duration), of: audioAssetTrack, at: CMTime.zero)
                         videoTrack.preferredTransform = videoAssetTrack.preferredTransform
                     } catch{
                         throw "Export failed."
