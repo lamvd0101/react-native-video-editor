@@ -21,123 +21,58 @@ class RNVideoEditorModule: NSObject {
         return false
     }
     func exportSession(
-            asset: AVAsset,
-            outputURL: URL,
-            timeRange: CMTimeRange?,
-            resolver resolve: @escaping RCTPromiseResolveBlock,
-            rejecter reject: @escaping RCTPromiseRejectBlock
-        ) -> Void {
-            VideoEditEmitter.logEvent(params:["name": "step2"])
-            self.exportSession = SDAVAssetExportSession(asset: asset)
-            guard self.exportSession != nil else { return reject(nil, nil, "Export failed.") }
-            VideoEditEmitter.logEvent(params:["name": "step3"])
-            self.exportSession!.outputURL = outputURL
-            self.exportSession!.outputFileType = AVFileType.mp4.rawValue
-            self.exportSession!.shouldOptimizeForNetworkUse = true
-            if (timeRange != nil) {
-                self.exportSession!.timeRange = timeRange!
-            }
-            VideoEditEmitter.logEvent(params:["name": "step4"])
-            var size: CGSize = .zero
-            if let track = asset.tracks(withMediaType: AVMediaType.video).first {
-                size = track.naturalSize.applying(track.preferredTransform)
-            }
-        VideoEditEmitter.logEvent(params:["name": "step5", "height": String(format: "%.f", size.height),"width": String(format: "%.f", size.width)])
-//            logEvent("{name: step2, size: \(size)}")
-            var newWidth = Double(VIDEO_WIDTH)
-            var newHeight = Double(VIDEO_HEIGHT)
-            let width = abs(size.width), height = abs(size.height)
-            print("mai.nguyen \(String(format: "%.f", size.width)) ")
-            // case size.width <0 or size.height < 0
-            if(size != .zero && (Double(size.width)<0 || Double(size.height)<0) && timeRange != nil){
-                VideoEditEmitter.logEvent(params:["name": "step6"])
-                self.compositionSession(
-                    asset: asset,
-                    outputURL: outputURL,
-                    timeRange: timeRange,
-                    resolver: resolve,
-                    rejecter: reject
-                )
-                return;
-            }
-        
-       
-        
-            if(size != .zero){
-                let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;
-                newWidth = Double(round(sqrt(CGFloat(maxPixelCount) * width / height)));
-                newHeight = Double(CGFloat(newWidth) * height / width);
-            }
-            VideoEditEmitter.logEvent(params:["name": "step7"])
-            self.exportSession!.videoSettings = [
-                AVVideoCodecKey: AVVideoCodecH264,
-                AVVideoWidthKey: String(format: "%.f", newWidth),
-                AVVideoHeightKey: String(format: "%.f", newHeight),
-                AVVideoCompressionPropertiesKey: [
-                    AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
-                    AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
-                    AVVideoProfileLevelKey: AVVideoProfileLevelH264High40
-                ]
-            ]
-            self.exportSession!.audioSettings = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVNumberOfChannelsKey: 2,
-                AVSampleRateKey: 44100,
-                AVEncoderBitRateKey: 128000
-            ]
-            
-            self.exportSession!.exportAsynchronously(completionHandler: {
-                switch self.exportSession!.status {
-                case .completed:
-                    self.exportSession = nil
-                    resolve(outputURL.absoluteString)
-                case .failed:
-                    reject(nil, nil, "Export failed.")
-                case .cancelled:
-                    reject(nil, nil, "Cancelled by user.")
-                default:
-                    reject(nil, nil, "Export failed.")
-                }
-            })
-        }
-    
-    func compositionSession(
         asset: AVAsset,
         outputURL: URL,
-        timeRange: CMTimeRange!,
+        timeRange: CMTimeRange?,
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-        VideoEditEmitter.logEvent(params:["name": "step8"])
-        let compositionAsset = AVMutableComposition()
 
-        let audioTrack: AVMutableCompositionTrack = compositionAsset.addMutableTrack(withMediaType: AVMediaType.audio, preferredTrackID: kCMPersistentTrackID_Invalid)!
-        let videoTrack: AVMutableCompositionTrack = compositionAsset.addMutableTrack(withMediaType: AVMediaType.video, preferredTrackID: kCMPersistentTrackID_Invalid)!
-        
-        
-        if let videoAssetTrack: AVAssetTrack = asset.tracks(withMediaType: .video).first,
-            let audioAssetTrack: AVAssetTrack = asset.tracks(withMediaType: .audio).first {
-            do {
-                VideoEditEmitter.logEvent(params:["name": "step9"])
-                try videoTrack.insertTimeRange(timeRange, of: videoAssetTrack, at: kCMTimeZero)
-                try audioTrack.insertTimeRange(timeRange, of: audioAssetTrack, at: kCMTimeZero)
-                videoTrack.preferredTransform = videoAssetTrack.preferredTransform
-            } catch{
-                VideoEditEmitter.logEvent(params:["name": "step10"])
-                reject(nil, nil, error)
-            }
+        self.exportSession = SDAVAssetExportSession(asset: asset)
+        guard self.exportSession != nil else { return reject(nil, nil, "Export failed.") }
+
+        self.exportSession!.outputURL = outputURL
+        self.exportSession!.outputFileType = AVFileType.mp4.rawValue
+        self.exportSession!.shouldOptimizeForNetworkUse = true
+        if (timeRange != nil) {
+            self.exportSession!.timeRange = timeRange!
         }
-        VideoEditEmitter.logEvent(params:["name": "step11"])
-        guard let exportSession = AVAssetExportSession(asset: compositionAsset, presetName: AVAssetExportPresetHighestQuality) else {return reject(nil, nil, "Export failed.")}
-        VideoEditEmitter.logEvent(params:["name": "step12"])
-        exportSession.outputURL = outputURL
+        var size: CGSize = .zero
+        if let track = asset.tracks(withMediaType: AVMediaType.video).first {
+            size = track.naturalSize.applying(track.preferredTransform)
+        }
 
-        exportSession.shouldOptimizeForNetworkUse = true
+        var newWidth = Double(VIDEO_WIDTH)
+        var newHeight = Double(VIDEO_HEIGHT)
+        let width = abs(size.width), height = abs(size.height)
+        print("mai.nguyen \(String(format: "%.f", size.width)) ")
+        print("mai.nguyen \(String(format: "%.f", size.height)) ")
+        
+        if(size != .zero){
+            let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;
+            newWidth = Double(round(sqrt(CGFloat(maxPixelCount) * width / height)));
+            newHeight = Double(CGFloat(newWidth) * height / width);
+        }
 
-        exportSession.outputFileType = .mp4
-
-        exportSession.exportAsynchronously {
-            switch exportSession.status {
+        self.exportSession!.videoSettings = [
+            AVVideoCodecKey: AVVideoCodecH264,
+            AVVideoWidthKey: String(format: "%.f", newWidth),
+            AVVideoHeightKey: String(format: "%.f", newHeight),
+            AVVideoCompressionPropertiesKey: [
+                AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
+                AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
+                AVVideoProfileLevelKey: AVVideoProfileLevelH264High40
+            ]
+        ]
+        self.exportSession!.audioSettings = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVNumberOfChannelsKey: 2,
+            AVSampleRateKey: 44100,
+            AVEncoderBitRateKey: 128000
+        ]
+        
+        self.exportSession!.exportAsynchronously(completionHandler: {
+            switch self.exportSession!.status {
             case .completed:
                 self.exportSession = nil
                 resolve(outputURL.absoluteString)
@@ -148,9 +83,9 @@ class RNVideoEditorModule: NSObject {
             default:
                 reject(nil, nil, "Export failed.")
             }
-        }
+        })
     }
-
+    
     @objc func getLocalURL(
         _ source: String,
         resolver resolve: RCTPromiseResolveBlock,
@@ -314,12 +249,12 @@ class RNVideoEditorModule: NSObject {
             var soundTracks: [AVMutableCompositionTrack] = []
             
             if let videoTrack = compositionAsset.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-                let audioTrack = compositionAsset.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+               let audioTrack = compositionAsset.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
                 videoTracks.append(videoTrack)
                 soundTracks.append(audioTrack)
                 
                 if let videoAssetTrack: AVAssetTrack = videoAsset.tracks(withMediaType: .video).first,
-                    let audioAssetTrack: AVAssetTrack = audioAsset.tracks(withMediaType: .audio).first {
+                   let audioAssetTrack: AVAssetTrack = audioAsset.tracks(withMediaType: .audio).first {
                     do {
                         try videoTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, videoAssetTrack.timeRange.duration), of: videoAssetTrack, at: kCMTimeZero)
                         try soundTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, audioAssetTrack.timeRange.duration), of: audioAssetTrack, at: kCMTimeZero)
@@ -365,9 +300,8 @@ class RNVideoEditorModule: NSObject {
             
             let outputURL: URL = try RNVideoEditorUtilities.createTempFile("mp4")
             
-            let timeRange = CMTimeRange(start: startTime, end: endTime)
+            let timeRange = CMTimeRangeMake(startTime, endTime)
             
-            VideoEditEmitter.logEvent(params:["name": "step1", "outputURL": source])
             self.exportSession(
                 asset: asset,
                 outputURL: outputURL,
@@ -381,9 +315,6 @@ class RNVideoEditorModule: NSObject {
         }
     }
     
-    func logA (){
-        
-    }
     @objc func cleanFiles(
         _ callBack: RCTResponseSenderBlock?
     ) -> Void {
