@@ -327,29 +327,25 @@
         naturalSize.height = width;
     }
     videoComposition.renderSize = naturalSize;
-    if(sizeAsset.width <0 || sizeAsset.height <0){
-        CGRect rect = {{0, 0}, naturalSize};
-        CGRect transformedRect = CGRectApplyAffineTransform(rect, transform);
-        // transformedRect should have origin at 0 if correct; otherwise add offset to correct it
-        transform.tx -= transformedRect.origin.x;
-        transform.ty -= transformedRect.origin.y;
-    }else{
-        // center inside
-        {
-            float ratio;
-            float xratio = targetSize.width / naturalSize.width;
-            float yratio = targetSize.height / naturalSize.height;
-            ratio = MIN(xratio, yratio);
-            
-            float postWidth = naturalSize.width * ratio;
-            float postHeight = naturalSize.height * ratio;
-            float transx = (targetSize.width - postWidth) / 2;
-            float transy = (targetSize.height - postHeight) / 2;
-            
-            CGAffineTransform matrix = CGAffineTransformMakeTranslation(transx / xratio, transy / yratio);
-            matrix = CGAffineTransformScale(matrix, ratio / xratio, ratio / yratio);
-            transform = CGAffineTransformConcat(transform, matrix);
-        }
+    CGRect rect = {{0, 0}, naturalSize};
+    CGRect transformedRect = CGRectApplyAffineTransform(rect, transform);
+    // transformedRect should have origin at 0 if correct; otherwise add offset to correct it
+    transform.tx -= transformedRect.origin.x;
+    transform.ty -= transformedRect.origin.y;
+   {
+        float ratio;
+        float xratio = targetSize.width / naturalSize.width;
+        float yratio = targetSize.height / naturalSize.height;
+        ratio = MIN(xratio, yratio);
+        
+        float postWidth = naturalSize.width * ratio;
+        float postHeight = naturalSize.height * ratio;
+        float transx = (targetSize.width - postWidth) / 2;
+        float transy = (targetSize.height - postHeight) / 2;
+        
+        CGAffineTransform matrix = CGAffineTransformMakeTranslation(transx / xratio, transy / yratio);
+        matrix = CGAffineTransformScale(matrix, ratio / xratio, ratio / yratio);
+        transform = CGAffineTransformConcat(transform, matrix);
     }
     
     // Make a "pass through video track" video composition.
