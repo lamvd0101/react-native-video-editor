@@ -325,7 +325,9 @@
     videoComposition.frameDuration = CMTimeMake(1, trackFrameRate);
     CGSize targetSize = CGSizeMake([self.videoSettings[AVVideoWidthKey] floatValue], [self.videoSettings[AVVideoHeightKey] floatValue]);
     CGSize naturalSize = [videoTrack naturalSize];
+    CGAffineTransform transform = videoTrack.preferredTransform;
     CGRect cropRect = {{0, 0}, targetSize};
+    CGRect transformedRect = CGRectApplyAffineTransform(cropRect, transform);
     CGFloat cropOffX = cropRect.origin.x;
     CGFloat cropOffY = cropRect.origin.y;
     CGFloat cropWidth = targetSize.width;
@@ -339,16 +341,27 @@
     CGAffineTransform t2 = CGAffineTransformIdentity;
     switch (videoOrientation) {
         case UIImageOrientationUp:
-            t1 = CGAffineTransformMakeTranslation(naturalSize.height - cropOffX, 0 - cropOffY );
+        {
+            float ratio = 1;
+            float tranx = naturalSize.height-cropOffX;
+            if(targetSize.width>targetSize.height){
+                ratio = targetSize.width/targetSize.height;
+                cropOffX = transformedRect.origin.x;
+                cropOffY = transformedRect.origin.y;
+                tranx = naturalSize.height+cropOffX;
+            }
+            CGAffineTransform matrix = CGAffineTransformMakeTranslation(tranx, 0 - cropOffY);
+            t1 = CGAffineTransformScale(matrix, ratio, ratio);
+        }
             t2 = CGAffineTransformRotate(t1, M_PI_2 );
             break;
         case UIImageOrientationDown:
-            t1 = CGAffineTransformMakeTranslation(0 - cropOffX, naturalSize.width - cropOffY ); // not fixed width is the real height in upside down
+            t1 = CGAffineTransformMakeTranslation(0 - cropOffX, naturalSize.width - cropOffY );
             t2 = CGAffineTransformRotate(t1, - M_PI_2 );
             break;
         case UIImageOrientationRight:
             {
-                float ratio;
+                 float ratio;
                 float xratio = targetSize.width/naturalSize.width;
                 float yratio = targetSize.height/naturalSize.height;
                 ratio = MIN(xratio, yratio);
@@ -366,6 +379,7 @@
             break;
     }
     CGAffineTransform finalTransform = t2;
+  
 
     AVMutableVideoCompositionInstruction *passThroughInstruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
     passThroughInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, self.asset.duration);
