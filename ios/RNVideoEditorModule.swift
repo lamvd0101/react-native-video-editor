@@ -45,8 +45,6 @@ class RNVideoEditorModule: NSObject {
         var newWidth = Double(VIDEO_WIDTH)
         var newHeight = Double(VIDEO_HEIGHT)
         let width = abs(size.width), height = abs(size.height)
-        print("mai.nguyen \(String(format: "%.f", size.width)) ")
-        print("mai.nguyen \(String(format: "%.f", size.height)) ")
         
         if(size != .zero){
             let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;

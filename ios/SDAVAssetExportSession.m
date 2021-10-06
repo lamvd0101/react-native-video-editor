@@ -275,11 +275,26 @@
     return YES;
 }
 
+- (UIImageOrientation)getVideoOrientationFromAsset:(AVAsset *)asset
+{
+    AVAssetTrack *videoTrack = [[self.asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
+    CGSize size = [videoTrack naturalSize];
+    CGAffineTransform txf = [videoTrack preferredTransform];
+
+    if (size.width == txf.tx && size.height == txf.ty)
+        return UIImageOrientationLeft; //return UIInterfaceOrientationLandscapeLeft;
+    else if (txf.tx == 0 && txf.ty == 0)
+        return UIImageOrientationRight; //return UIInterfaceOrientationLandscapeRight;
+    else if (txf.tx == 0 && txf.ty == size.width)
+        return UIImageOrientationDown; //return UIInterfaceOrientationPortraitUpsideDown;
+    else
+        return UIImageOrientationUp;  //return UIInterfaceOrientationPortrait;
+}
+
 - (AVMutableVideoComposition *)buildDefaultVideoComposition
 {
     AVMutableVideoComposition *videoComposition = [AVMutableVideoComposition videoComposition];
     AVAssetTrack *videoTrack = [[self.asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0];
-    
     // get the frame rate from videoSettings, if not set then try to get it from the video track,
     // if not set (mainly when asset is AVComposition) then use the default frame rate of 30
     float trackFrameRate = 0;
@@ -294,6 +309,7 @@
                 trackFrameRate = frameRate.floatValue;
             }
         }
+
     }
     else
     {
@@ -304,57 +320,59 @@
     {
         trackFrameRate = 30;
     }
-    
+
+
     videoComposition.frameDuration = CMTimeMake(1, trackFrameRate);
     CGSize targetSize = CGSizeMake([self.videoSettings[AVVideoWidthKey] floatValue], [self.videoSettings[AVVideoHeightKey] floatValue]);
     CGSize naturalSize = [videoTrack naturalSize];
-    CGAffineTransform transform = videoTrack.preferredTransform;
-    CGSize sizeAsset = CGSizeApplyAffineTransform(videoTrack.naturalSize, videoTrack.preferredTransform);
-    
-    // Workaround radar 31928389, see https://github.com/rs/SDAVAssetExportSession/pull/70 for more info
-    if (transform.ty == -560) {
-        transform.ty = 0;
-    }
+    CGRect cropRect = {{0, 0}, targetSize};
+    CGFloat cropOffX = cropRect.origin.x;
+    CGFloat cropOffY = cropRect.origin.y;
+    CGFloat cropWidth = targetSize.width;
+    CGFloat cropHeight = targetSize.height;
 
-    if (transform.tx == -560) {
-        transform.tx = 0;
+    videoComposition.renderSize = CGSizeMake(cropWidth, cropHeight);
+
+    UIImageOrientation videoOrientation = [self getVideoOrientationFromAsset:self.asset];
+
+    CGAffineTransform t1 = CGAffineTransformIdentity;
+    CGAffineTransform t2 = CGAffineTransformIdentity;
+    switch (videoOrientation) {
+        case UIImageOrientationUp:
+            t1 = CGAffineTransformMakeTranslation(naturalSize.height - cropOffX, 0 - cropOffY );
+            t2 = CGAffineTransformRotate(t1, M_PI_2 );
+            break;
+        case UIImageOrientationDown:
+            t1 = CGAffineTransformMakeTranslation(0 - cropOffX, naturalSize.width - cropOffY ); // not fixed width is the real height in upside down
+            t2 = CGAffineTransformRotate(t1, - M_PI_2 );
+            break;
+        case UIImageOrientationRight:
+            {
+                float ratio;
+                float xratio = targetSize.width/naturalSize.width;
+                float yratio = targetSize.height/naturalSize.height;
+                ratio = MIN(xratio, yratio);
+                CGAffineTransform matrix = CGAffineTransformMakeTranslation(0 - cropOffX, 0 - cropOffY);
+                t1 = CGAffineTransformScale(matrix, ratio, ratio);
+            }
+            t2 = CGAffineTransformRotate(t1, 0);
+            break;
+        case UIImageOrientationLeft:
+            t1 = CGAffineTransformMakeTranslation(naturalSize.width - cropOffX, naturalSize.height - cropOffY );
+            t2 = CGAffineTransformRotate(t1, M_PI  );
+            break;
+        default:
+            NSLog(@"no supported orientation has been found in this video");
+            break;
     }
-    
-    CGFloat videoAngleInDegree  = atan2(transform.b, transform.a) * 180 / M_PI;
-    if (videoAngleInDegree == 90 || videoAngleInDegree == -90) {
-        CGFloat width = naturalSize.width;
-        naturalSize.width = naturalSize.height;
-        naturalSize.height = width;
-    }
-    videoComposition.renderSize = naturalSize;
-    CGRect rect = {{0, 0}, naturalSize};
-    CGRect transformedRect = CGRectApplyAffineTransform(rect, transform);
-    // transformedRect should have origin at 0 if correct; otherwise add offset to correct it
-    transform.tx -= transformedRect.origin.x;
-    transform.ty -= transformedRect.origin.y;
-   {
-        float ratio;
-        float xratio = targetSize.width / naturalSize.width;
-        float yratio = targetSize.height / naturalSize.height;
-        ratio = MIN(xratio, yratio);
-        
-        float postWidth = naturalSize.width * ratio;
-        float postHeight = naturalSize.height * ratio;
-        float transx = (targetSize.width - postWidth) / 2;
-        float transy = (targetSize.height - postHeight) / 2;
-        
-        CGAffineTransform matrix = CGAffineTransformMakeTranslation(transx / xratio, transy / yratio);
-        matrix = CGAffineTransformScale(matrix, ratio / xratio, ratio / yratio);
-        transform = CGAffineTransformConcat(transform, matrix);
-    }
-    
-    // Make a "pass through video track" video composition.
+    CGAffineTransform finalTransform = t2;
+
     AVMutableVideoCompositionInstruction *passThroughInstruction = [AVMutableVideoCompositionInstruction videoCompositionInstruction];
     passThroughInstruction.timeRange = CMTimeRangeMake(kCMTimeZero, self.asset.duration);
     
     AVMutableVideoCompositionLayerInstruction *passThroughLayer = [AVMutableVideoCompositionLayerInstruction videoCompositionLayerInstructionWithAssetTrack:videoTrack];
     
-    [passThroughLayer setTransform:transform atTime:kCMTimeZero];
+    [passThroughLayer setTransform:finalTransform atTime:kCMTimeZero];
     
     passThroughInstruction.layerInstructions = @[passThroughLayer];
     videoComposition.instructions = @[passThroughInstruction];
