@@ -11,8 +11,8 @@ import UIKit
 
 @objc(RNVideoEditorModule)
 class RNVideoEditorModule: NSObject {
-    let VIDEO_WIDTH: Int = 720
-    let VIDEO_HEIGHT: Int = 1280
+    let VIDEO_WIDTH: String = "720"
+    let VIDEO_HEIGHT: String = "1280"
     let VIDEO_FPS: Int = 30
     let VIDEO_BITRATE: Int = 4000000
     var exportSession: SDAVAssetExportSession? = nil
@@ -20,6 +20,7 @@ class RNVideoEditorModule: NSObject {
     @objc static func requiresMainQueueSetup() -> Bool {
         return false
     }
+    
     func exportSession(
         asset: AVAsset,
         outputURL: URL,
@@ -27,35 +28,35 @@ class RNVideoEditorModule: NSObject {
         resolver resolve: @escaping RCTPromiseResolveBlock,
         rejecter reject: @escaping RCTPromiseRejectBlock
     ) -> Void {
-
         self.exportSession = SDAVAssetExportSession(asset: asset)
         guard self.exportSession != nil else { return reject(nil, nil, "Export failed.") }
-
+        
         self.exportSession!.outputURL = outputURL
         self.exportSession!.outputFileType = AVFileType.mp4.rawValue
         self.exportSession!.shouldOptimizeForNetworkUse = true
         if (timeRange != nil) {
             self.exportSession!.timeRange = timeRange!
         }
+        
         var size: CGSize = .zero
         if let track = asset.tracks(withMediaType: AVMediaType.video).first {
             size = track.naturalSize.applying(track.preferredTransform)
         }
-
-        var newWidth = Double(VIDEO_WIDTH)
-        var newHeight = Double(VIDEO_HEIGHT)
-        let width = abs(size.width), height = abs(size.height)
-        
-        if(size != .zero){
-            let maxPixelCount = VIDEO_WIDTH * VIDEO_HEIGHT;
-            newWidth = Double(round(sqrt(CGFloat(maxPixelCount) * width / height)));
-            newHeight = Double(CGFloat(newWidth) * height / width);
+        let ratio = size == .zero ? 0 : fabs(size.width) / fabs(size.height)
+        var newWidth: String = String(format: "%.f", fabs(size.width))
+        var newHeight: String = String(format: "%.f", fabs(size.height))
+        if ratio < 0, ratio == 9/16 {
+            newWidth = self.VIDEO_WIDTH
+            newHeight = self.VIDEO_HEIGHT
         }
-
+        else if ratio > 0, ratio == 16/9 {
+            newWidth = self.VIDEO_HEIGHT
+            newHeight = self.VIDEO_WIDTH
+        }
         self.exportSession!.videoSettings = [
             AVVideoCodecKey: AVVideoCodecH264,
-            AVVideoWidthKey: String(format: "%.f", newWidth),
-            AVVideoHeightKey: String(format: "%.f", newHeight),
+            AVVideoWidthKey: newWidth,
+            AVVideoHeightKey: newHeight,
             AVVideoCompressionPropertiesKey: [
                 AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
                 AVVideoAverageBitRateKey: self.VIDEO_BITRATE,
@@ -247,17 +248,16 @@ class RNVideoEditorModule: NSObject {
             var soundTracks: [AVMutableCompositionTrack] = []
             
             if let videoTrack = compositionAsset.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-               let audioTrack = compositionAsset.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
+                let audioTrack = compositionAsset.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
                 videoTracks.append(videoTrack)
                 soundTracks.append(audioTrack)
                 
                 if let videoAssetTrack: AVAssetTrack = videoAsset.tracks(withMediaType: .video).first,
-                   let audioAssetTrack: AVAssetTrack = audioAsset.tracks(withMediaType: .audio).first {
+                    let audioAssetTrack: AVAssetTrack = audioAsset.tracks(withMediaType: .audio).first {
                     do {
                         try videoTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, videoAssetTrack.timeRange.duration), of: videoAssetTrack, at: kCMTimeZero)
                         try soundTracks.first?.insertTimeRange(CMTimeRangeMake(kCMTimeZero, audioAssetTrack.timeRange.duration), of: audioAssetTrack, at: kCMTimeZero)
                         videoTrack.preferredTransform = videoAssetTrack.preferredTransform
-                        
                     } catch{
                         throw "Export failed."
                     }
@@ -288,17 +288,13 @@ class RNVideoEditorModule: NSObject {
             let asset: AVAsset! = try RNVideoEditorUtilities.requestAsset(source)
             let duration: Double = asset.duration.seconds
             
-            var start: Double = options.object(forKey: "startTime") as? Double ?? 0
-            var end: Double = options.object(forKey: "endTime") as? Double ?? 0
-            if start < 0 { start = 0 }
-            if end > duration { end = duration }
-            
-            let startTime: CMTime = CMTime(seconds: start, preferredTimescale: asset.duration.timescale)
-            let endTime: CMTime = CMTime(seconds: end, preferredTimescale: asset.duration.timescale)
+            var startTime: Double = options.object(forKey: "startTime") as? Double ?? 0
+            var endTime: Double = options.object(forKey: "endTime") as? Double ?? 0
+            if startTime < 0 { startTime = 0 }
+            if endTime > duration { endTime = duration }
             
             let outputURL: URL = try RNVideoEditorUtilities.createTempFile("mp4")
-            
-            let timeRange = CMTimeRangeMake(startTime, endTime)
+            let timeRange = CMTimeRange(start: CMTime(seconds: startTime, preferredTimescale: asset.duration.timescale), end: CMTime(seconds: endTime, preferredTimescale: asset.duration.timescale))
             
             self.exportSession(
                 asset: asset,
@@ -307,7 +303,6 @@ class RNVideoEditorModule: NSObject {
                 resolver: resolve,
                 rejecter: reject
             )
-            
         } catch {
             reject(nil, nil, error)
         }
@@ -330,5 +325,4 @@ class RNVideoEditorModule: NSObject {
         self.exportSession!.cancelExport()
         callBack!(nil)
     }
-    
 }
