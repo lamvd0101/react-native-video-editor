@@ -37,10 +37,26 @@ class RNVideoEditorModule: NSObject {
         if (timeRange != nil) {
             self.exportSession!.timeRange = timeRange!
         }
+        
+        var size: CGSize = .zero
+        if let track = asset.tracks(withMediaType: AVMediaType.video).first {
+            size = track.naturalSize.applying(track.preferredTransform)
+        }
+        let ratio = size == .zero ? 0 : fabs(size.width) / fabs(size.height)
+        var newWidth: String = String(format: "%.f", fabs(size.width))
+        var newHeight: String = String(format: "%.f", fabs(size.height))
+        if ratio < 0, ratio == 9/16 {
+            newWidth = self.VIDEO_WIDTH
+            newHeight = self.VIDEO_HEIGHT
+        }
+        else if ratio > 0, ratio == 16/9 {
+            newWidth = self.VIDEO_HEIGHT
+            newHeight = self.VIDEO_WIDTH
+        }
         self.exportSession!.videoSettings = [
             AVVideoCodecKey: AVVideoCodecH264,
-            AVVideoWidthKey: self.VIDEO_WIDTH,
-            AVVideoHeightKey: self.VIDEO_HEIGHT,
+            AVVideoWidthKey: newWidth,
+            AVVideoHeightKey: newHeight,
             AVVideoCompressionPropertiesKey: [
                 AVVideoMaxKeyFrameIntervalKey: self.VIDEO_FPS,
                 AVVideoAverageBitRateKey: self.VIDEO_BITRATE,

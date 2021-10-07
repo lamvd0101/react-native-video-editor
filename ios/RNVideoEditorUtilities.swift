@@ -30,6 +30,7 @@ class RNVideoEditorUtilities {
             let options: PHVideoRequestOptions = PHVideoRequestOptions()
             options.deliveryMode = .fastFormat
             options.isNetworkAccessAllowed = true
+            options.deliveryMode = .highQualityFormat
             
             PHCachingImageManager().requestAVAsset(
                 forVideo: phAsset!,
