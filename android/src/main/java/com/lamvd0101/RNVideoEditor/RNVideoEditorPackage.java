@@ -33,7 +33,6 @@ public class RNVideoEditorPackage implements ReactPackage {
     return modules;
   }
 
-  @Override
   public List<Class<? extends JavaScriptModule>> createJSModules() {
     return null;
   }
